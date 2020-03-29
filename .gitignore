@@ -1,0 +1,4 @@
+*.swp
+config.toml
+vendor
+galaxy-monitor
