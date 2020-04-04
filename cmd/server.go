@@ -32,6 +32,8 @@ func serverFn(cmd *cobra.Command, args []string) {
 	common.Init()
 	defer common.Shutdown()
 
+	api.Init()
+
 	// Setup gin
 	gin.SetMode(viper.GetString("server.mode"))
 	router := gin.New()
