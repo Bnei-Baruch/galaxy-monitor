@@ -32,10 +32,14 @@ func InitWithDefault(defaultDb *sql.DB) time.Time {
 	if defaultDb != nil {
 		DB = defaultDb
 	} else {
-		log.Info("Setting up connection to MDB")
-		DB, err = sql.Open("postgres", viper.GetString("mdb.url"))
-		utils.Must(err)
-		utils.Must(DB.Ping())
+		log.Info("Setting up connection to DB")
+		if connectionString := viper.GetString("db.url"); connectionString == "" {
+			log.Warn("Connection string is empty, skipping connection to DB.")
+		} else {
+			DB, err = sql.Open("postgres", connectionString)
+			utils.Must(err)
+			utils.Must(DB.Ping())
+		}
 	}
 	boil.SetDB(DB)
 	boil.DebugMode = viper.GetString("server.boiler-mode") == "debug"
