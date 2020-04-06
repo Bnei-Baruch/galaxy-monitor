@@ -7,7 +7,7 @@ build: clean test
 	@go build -ldflags '$(LDFLAGS)'
 
 clean:
-	@rm -f archive-backend
+	@rm -f galaxy-monitor
 
 install:
 	@godep restore

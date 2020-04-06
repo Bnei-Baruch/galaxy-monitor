@@ -30,12 +30,14 @@ func LoggerMiddleware() gin.HandlerFunc {
 		c.Next()
 
 		log.WithFields(log.Fields{
-			"status":     c.Writer.Status(),
-			"method":     c.Request.Method,
-			"path":       path,
-			"latency":    time.Now().Sub(start),
-			"ip":         c.ClientIP(),
-			"user-agent": c.Request.UserAgent(),
+			"status":                  c.Writer.Status(),
+			"method":                  c.Request.Method,
+			"request-content-length":  c.Request.ContentLength,
+			"response-content-length": c.Writer.Size(),
+			"path":                    path,
+			"latency":                 time.Now().Sub(start),
+			"ip":                      c.ClientIP(),
+			"user-agent":              c.Request.UserAgent(),
 		}).Info()
 	}
 }

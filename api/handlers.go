@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"sort"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -27,15 +28,66 @@ var (
 
 	// Map of users.
 	USERS map[string]User
+
+	DATA_MUX sync.Mutex
+
+	I StringInterner
 )
 
+type StringInterner struct {
+	m   map[string]string
+	mux sync.Mutex
+}
+
+func (si *StringInterner) I(s string) string {
+	si.mux.Lock()
+	defer si.mux.Unlock()
+	if _, ok := si.m[s]; !ok {
+		si.m[s] = s
+	}
+	return si.m[s]
+}
+
 func Init() {
+	DATA_MUX.Lock()
+	defer DATA_MUX.Unlock()
 	DATA = make(map[string]map[int64][]Data)
 	DATA_SERIES = make(map[string][]int64)
 	USERS = make(map[string]User)
+	I = StringInterner{m: make(map[string]string)}
+}
+
+func InternJsonValue(v interface{}) interface{} {
+	if m, ok := v.(map[string]interface{}); ok {
+		return InternJsonMap(m)
+	} else if a, ok := v.([]interface{}); ok {
+		return InternJsonArr(a)
+	} else if s, ok := v.(string); ok {
+		return I.I(s)
+	} else {
+		return v
+	}
+}
+
+func InternJsonMap(json map[string]interface{}) map[string]interface{} {
+	m := make(map[string]interface{})
+	for k, v := range json {
+		m[I.I(k)] = InternJsonValue(v)
+	}
+	return m
+}
+
+func InternJsonArr(json []interface{}) []interface{} {
+	a := make([]interface{}, 0)
+	for i := range json {
+		a = append(a, InternJsonValue(json[i]))
+	}
+	return a
 }
 
 func AddData(user User, userId string, timestamp int64, data Data) {
+	DATA_MUX.Lock()
+	defer DATA_MUX.Unlock()
 	USERS[userId] = user
 	if _, ok := DATA[userId]; !ok {
 		DATA[userId] = make(map[int64][]Data)
@@ -48,6 +100,8 @@ func AddData(user User, userId string, timestamp int64, data Data) {
 }
 
 func ClearOld(userId string, timestamp int64) {
+	DATA_MUX.Lock()
+	defer DATA_MUX.Unlock()
 	log.Infof("Before clean there are %d time series for %s", len(DATA_SERIES[userId]), userId)
 	lastTimestamp := DATA_SERIES[userId][len(DATA_SERIES[userId])-1]
 	log.Infof("firsTimestamp: %+v lastTimestamp: %+v", DATA_SERIES[userId][0], lastTimestamp)
@@ -154,6 +208,7 @@ func UpdateHandler(c *gin.Context) {
 	if c.Bind(&r) != nil {
 		return
 	}
+	r = InternJsonMap(r)
 
 	resp, err := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), r)
 	concludeRequest(c, resp, err)
