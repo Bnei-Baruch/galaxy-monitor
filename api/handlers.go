@@ -1,8 +1,12 @@
 package api
 
 import (
+	"compress/flate"
+	"compress/gzip"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"sort"
@@ -17,7 +21,7 @@ type Data = map[string]interface{}
 type User = map[string]interface{}
 
 const (
-	STORE_TTL int64 = 10 * 60 * 1000 // 10 minutes back, in ms.
+	STORE_TTL int64 = 5 * 60 * 1000 // 5 minutes back, in ms.
 )
 
 var (
@@ -120,7 +124,7 @@ func ClearOld(userId string, timestamp int64) {
 
 func GetUser(r map[string]interface{}) (User, error) {
 	if user, ok := r["user"]; !ok {
-		return nil, errors.New("Expected 'user' object.")
+		return nil, errors.New(fmt.Sprintf("Expected 'user' object got: %+v.", r))
 	} else {
 		if u, ok := user.(User); !ok {
 			return nil, errors.New("Expected 'user' to be an object.")
@@ -204,14 +208,37 @@ func concludeRequest(c *gin.Context, resp interface{}, err *HttpError) {
 type UpdateResponse struct{}
 
 func UpdateHandler(c *gin.Context) {
-	r := make(map[string]interface{})
-	if c.Bind(&r) != nil {
+	var reader io.Reader
+	switch c.Request.Header.Get("Content-Encoding") {
+	case "gzip":
+		gz, err := gzip.NewReader(c.Request.Body)
+		if err != nil {
+			log.Infof("error with gzip reader: %s", err.Error())
+		}
+		defer gz.Close()
+		reader = gz
+	case "deflate":
+		def := flate.NewReader(c.Request.Body)
+		defer def.Close()
+		reader = def
+	default:
+		// just use the default reader
+		reader = c.Request.Body
+	}
+	// NOTE: assuming json here
+	// you may want to check r.Header.Get("Content-Type")
+	decoder := json.NewDecoder(reader)
+	var v map[string]interface{}
+	if err := decoder.Decode(&v); err != nil {
+		log.Infof("error decoding: %s", err.Error())
+		concludeRequest(c, UpdateResponse{}, NewBadRequestError(err))
 		return
 	}
-	r = InternJsonMap(r)
 
-	resp, err := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), r)
-	concludeRequest(c, resp, err)
+	internR := InternJsonMap(v)
+
+	resp, httpErr := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), internR)
+	concludeRequest(c, resp, httpErr)
 }
 
 func handleUpdate(db *sql.DB, r map[string]interface{}) (*UpdateResponse, *HttpError) {
