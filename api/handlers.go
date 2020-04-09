@@ -64,3 +64,12 @@ func UsersHandler(c *gin.Context) {
 	resp, httpErr := handleUsers(c.MustGet("MDB_DB").(*sql.DB))
 	concludeRequest(c, resp, httpErr)
 }
+
+func UserDataHandler(c *gin.Context) {
+	var r UserDataRequest
+	if c.Bind(&r) != nil {
+		return
+	}
+	resp, httpErr := handleUserData(c.MustGet("MDB_DB").(*sql.DB), r)
+	concludeRequest(c, resp, httpErr)
+}
