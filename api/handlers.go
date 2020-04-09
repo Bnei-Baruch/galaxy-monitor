@@ -73,3 +73,8 @@ func UserDataHandler(c *gin.Context) {
 	resp, httpErr := handleUserData(c.MustGet("MDB_DB").(*sql.DB), r)
 	concludeRequest(c, resp, httpErr)
 }
+
+func MetricsHandler(c *gin.Context) {
+	resp, httpErr := handleMetrics(c.MustGet("MDB_DB").(*sql.DB))
+	concludeRequest(c, resp, httpErr)
+}

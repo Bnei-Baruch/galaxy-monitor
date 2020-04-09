@@ -10,6 +10,11 @@ import (
 
 type Data = map[string]interface{}
 type User = map[string]interface{}
+type MetricType struct {
+	Metric  string `json:"metric"`
+	Type    string `json:"type"`
+	Updates int64  `json:"updates"`
+}
 
 const (
 	STORE_TTL int64 = 5 * 60 * 1000 // 5 minutes back, in ms.
@@ -18,8 +23,11 @@ const (
 var (
 	// Map from user to timestamp to data.
 	DATA map[string]map[int64][]Data
-	// Map from user to ordered list of existing timestamps
+	// Map from user to ordered list of existing timestamps.
 	DATA_SERIES map[string][]int64
+
+	// List of all metrics with basic statistics.
+	METRICS map[string]*MetricType
 
 	// Map of users.
 	USERS map[string]User
@@ -28,6 +36,16 @@ var (
 
 	I StringInterner
 )
+
+func Init() {
+	DATA_MUX.Lock()
+	defer DATA_MUX.Unlock()
+	DATA = make(map[string]map[int64][]Data)
+	DATA_SERIES = make(map[string][]int64)
+	METRICS = make(map[string]*MetricType)
+	USERS = make(map[string]User)
+	I = StringInterner{m: make(map[string]string)}
+}
 
 type StringInterner struct {
 	m   map[string]string
@@ -41,15 +59,6 @@ func (si *StringInterner) I(s string) string {
 		si.m[s] = s
 	}
 	return si.m[s]
-}
-
-func Init() {
-	DATA_MUX.Lock()
-	defer DATA_MUX.Unlock()
-	DATA = make(map[string]map[int64][]Data)
-	DATA_SERIES = make(map[string][]int64)
-	USERS = make(map[string]User)
-	I = StringInterner{m: make(map[string]string)}
 }
 
 func InternJsonValue(v interface{}) interface{} {
@@ -130,12 +139,32 @@ func GetDatas(r map[string]interface{}) ([]Data, error) {
 	}
 }
 
+func ObjKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func GetInt64(json map[string]interface{}, field string) (int64, error) {
 	if value, ok := json[field]; !ok {
 		return 0, errors.New(fmt.Sprintf("Expected '%s'.", field))
 	} else {
 		if v, ok := value.(int64); !ok {
 			return 0, errors.New(fmt.Sprintf("Expected '%s' to be int64 got '%s'.", field, reflect.TypeOf(value)))
+		} else {
+			return v, nil
+		}
+	}
+}
+
+func GetString(json map[string]interface{}, field string) (string, error) {
+	if value, ok := json[field]; !ok {
+		return "", errors.New(fmt.Sprintf("Expected '%s' have: %+v", field, ObjKeys(json)))
+	} else {
+		if v, ok := value.(string); !ok {
+			return "", errors.New(fmt.Sprintf("Expected '%s' to be string got '%s'.", field, reflect.TypeOf(value)))
 		} else {
 			return v, nil
 		}
