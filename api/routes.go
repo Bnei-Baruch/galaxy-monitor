@@ -6,4 +6,5 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 	router.POST("/update", UpdateHandler)
+	router.GET("/users", UsersHandler)
 }
