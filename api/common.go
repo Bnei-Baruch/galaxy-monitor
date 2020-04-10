@@ -17,7 +17,7 @@ type MetricType struct {
 }
 
 const (
-	STORE_TTL int64 = 5 * 60 * 1000 // 5 minutes back, in ms.
+	STORE_TTL int64 = 1 * 60 * 1000 // 5 minutes back, in ms.
 )
 
 var (

@@ -47,7 +47,7 @@ func addMetric(prefix string, t string) {
 	if METRICS[prefix].Type == "null" {
 		METRICS[prefix].Type = t
 	}
-	if METRICS[prefix].Type != t {
+	if t != "null" && METRICS[prefix].Type != t {
 		log.Warnf("Metric %s expected to be %s, but is %s.", prefix, t, METRICS[prefix].Type)
 	}
 	METRICS[prefix].Updates++
