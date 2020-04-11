@@ -78,3 +78,17 @@ func MetricsHandler(c *gin.Context) {
 	resp, httpErr := handleMetrics(c.MustGet("MDB_DB").(*sql.DB))
 	concludeRequest(c, resp, httpErr)
 }
+
+func SpecHandlerPost(c *gin.Context) {
+	var r Spec
+	if c.Bind(&r) != nil {
+		return
+	}
+	resp, httpErr := handleSpecPost(c.MustGet("MDB_DB").(*sql.DB), r)
+	concludeRequest(c, resp, httpErr)
+}
+
+func SpecHandlerGet(c *gin.Context) {
+	resp, httpErr := handleSpecGet(c.MustGet("MDB_DB").(*sql.DB))
+	concludeRequest(c, resp, httpErr)
+}

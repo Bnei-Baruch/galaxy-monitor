@@ -119,24 +119,28 @@ func ClearOld(userId string, timestamp int64) {
 	log.Infof("After clean there are %d time series for %s", len(DATA_SERIES[userId]), userId)
 }
 
-func handleUpdate(db *sql.DB, r map[string]interface{}) (*EmptyResponse, *HttpError) {
+type UpdateResponse struct {
+	Spec Spec `json:"spec"`
+}
+
+func handleUpdate(db *sql.DB, r map[string]interface{}) (*UpdateResponse, *HttpError) {
 	user, err := GetUser(r)
 	if err != nil {
-		return &EmptyResponse{}, NewBadRequestError(err)
+		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)
 	}
 	userId, err := UserId(user)
 	if err != nil {
-		return &EmptyResponse{}, NewBadRequestError(err)
+		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)
 	}
 	datas, err := GetDatas(r)
 	if err != nil {
-		return &EmptyResponse{}, NewBadRequestError(err)
+		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)
 	}
 	maxTimestamp := int64(0)
 	for _, data := range datas {
 		floatTimestamp, err := GetFloat64(data, "timestamp")
 		if err != nil {
-			return &EmptyResponse{}, NewBadRequestError(err)
+			return &UpdateResponse{}, NewBadRequestError(err)
 		}
 		timestamp := int64(floatTimestamp)
 		AddData(user, userId, timestamp, data)
@@ -147,5 +151,5 @@ func handleUpdate(db *sql.DB, r map[string]interface{}) (*EmptyResponse, *HttpEr
 	}
 	ClearOld(userId, maxTimestamp)
 
-	return &EmptyResponse{}, nil
+	return &UpdateResponse{Spec: SPEC}, nil
 }

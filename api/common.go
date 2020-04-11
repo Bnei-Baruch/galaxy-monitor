@@ -8,6 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	SECOND_MS      = 1000
+	MINUTE_MS      = 60 * SECOND_MS
+	TWO_MINUTES_MS = 2 * MINUTE_MS
+)
+
 type Data = map[string]interface{}
 type User = map[string]interface{}
 type MetricType struct {
@@ -15,10 +21,11 @@ type MetricType struct {
 	Type    string `json:"type"`
 	Updates int64  `json:"updates"`
 }
-
-const (
-	STORE_TTL int64 = 1 * 60 * 1000 // 5 minutes back, in ms.
-)
+type Spec struct {
+	SampleInterval   int64    `json:"sample_interval"`
+	StoreInterval    int64    `json:"store_interval"`
+	MetricsBlacklist []string `json:"metrics_blacklist"`
+}
 
 var (
 	// Map from user to timestamp to data.
@@ -31,6 +38,12 @@ var (
 
 	// Map of users.
 	USERS map[string]User
+
+	// User specs.
+	SPEC Spec
+
+	// Server spec
+	STORE_TTL int64
 
 	DATA_MUX sync.Mutex
 
@@ -45,6 +58,12 @@ func Init() {
 	METRICS = make(map[string]*MetricType)
 	USERS = make(map[string]User)
 	I = StringInterner{m: make(map[string]string)}
+	SPEC = Spec{
+		SampleInterval:   SECOND_MS,
+		StoreInterval:    TWO_MINUTES_MS,
+		MetricsBlacklist: []string{},
+	}
+	STORE_TTL = MINUTE_MS
 }
 
 type StringInterner struct {
