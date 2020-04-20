@@ -54,9 +54,8 @@ func UpdateHandler(c *gin.Context) {
 		return
 	}
 
-	internR := InternJsonMap(r)
-
-	resp, httpErr := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), internR)
+	resp, httpErr := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), r)
+	// I.Info()
 	concludeRequest(c, resp, httpErr)
 }
 
@@ -71,6 +70,11 @@ func UserDataHandler(c *gin.Context) {
 		return
 	}
 	resp, httpErr := handleUserData(c.MustGet("MDB_DB").(*sql.DB), r)
+	concludeRequest(c, resp, httpErr)
+}
+
+func UsersDataHandler(c *gin.Context) {
+	resp, httpErr := handleUsersData(c.MustGet("MDB_DB").(*sql.DB))
 	concludeRequest(c, resp, httpErr)
 }
 
@@ -90,5 +94,14 @@ func SpecHandlerPost(c *gin.Context) {
 
 func SpecHandlerGet(c *gin.Context) {
 	resp, httpErr := handleSpecGet(c.MustGet("MDB_DB").(*sql.DB))
+	concludeRequest(c, resp, httpErr)
+}
+
+func UserMetricsHandler(c *gin.Context) {
+	var r UserDataRequest
+	if c.Bind(&r) != nil {
+		return
+	}
+	resp, httpErr := handleUserMetrics(c.MustGet("MDB_DB").(*sql.DB), r)
 	concludeRequest(c, resp, httpErr)
 }

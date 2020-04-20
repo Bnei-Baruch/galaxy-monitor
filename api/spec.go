@@ -18,8 +18,8 @@ func handleSpecPost(db *sql.DB, r Spec) (*EmptyResponse, *HttpError) {
 	} else {
 		return &EmptyResponse{}, NewBadRequestError(errors.New(fmt.Sprintf("store_interval smaller then minute, got %d", r.StoreInterval)))
 	}
-	if len(r.MetricsBlacklist) > 0 {
-		SPEC.MetricsBlacklist = r.MetricsBlacklist
+	if len(r.MetricsWhitelist) > 0 {
+		SPEC.MetricsWhitelist = r.MetricsWhitelist
 	}
 	return &EmptyResponse{}, nil
 }

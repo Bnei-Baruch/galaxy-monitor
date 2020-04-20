@@ -5,13 +5,18 @@ import (
 	"reflect"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 )
 
 const (
-	SECOND_MS      = 1000
-	MINUTE_MS      = 60 * SECOND_MS
-	TWO_MINUTES_MS = 2 * MINUTE_MS
+	SECOND_MS        = 1000
+	FIVE_SECONDS_MS  = 5 * SECOND_MS
+	MINUTE_MS        = 60 * SECOND_MS
+	TWO_MINUTES_MS   = 2 * MINUTE_MS
+	THREE_MINUTES_MS = 3 * MINUTE_MS
+	FIVE_MINUTES_MS  = 5 * MINUTE_MS
+	TEN_MINUTES_MS   = 10 * MINUTE_MS
 )
 
 type Data = map[string]interface{}
@@ -24,7 +29,13 @@ type MetricType struct {
 type Spec struct {
 	SampleInterval   int64    `json:"sample_interval"`
 	StoreInterval    int64    `json:"store_interval"`
-	MetricsBlacklist []string `json:"metrics_blacklist"`
+	MetricsWhitelist []string `json:"metrics_whitelist"`
+}
+type MetricsData struct {
+	Index      map[string]int  `json:"index"`
+	Timestamps []int64         `json:"timestamps"`
+	Data       [][]interface{} `json:"data"`
+	Stats      [][]*Stats      `json:"stats"`
 }
 
 var (
@@ -35,6 +46,9 @@ var (
 
 	// List of all metrics with basic statistics.
 	METRICS map[string]*MetricType
+
+	// Store whitelisted data.
+	METRICS_DATA map[string]*MetricsData
 
 	// Map of users.
 	USERS map[string]User
@@ -56,56 +70,68 @@ func Init() {
 	DATA = make(map[string]map[int64][]Data)
 	DATA_SERIES = make(map[string][]int64)
 	METRICS = make(map[string]*MetricType)
+	METRICS_DATA = make(map[string]*MetricsData)
 	USERS = make(map[string]User)
-	I = StringInterner{m: make(map[string]string)}
+	//I = StringInterner{m: make(map[string]*InternedString)}
 	SPEC = Spec{
-		SampleInterval:   SECOND_MS,
-		StoreInterval:    TWO_MINUTES_MS,
-		MetricsBlacklist: []string{},
+		SampleInterval: SECOND_MS,
+		StoreInterval:  MINUTE_MS,
+		MetricsWhitelist: []string{
+			"[name:audio].reports.[type:remote-inbound-rtp].jitter",
+			"[name:audio].reports.[type:remote-inbound-rtp].packetsLost",
+			"[name:audio].reports.[type:remote-inbound-rtp].roundTripTime",
+			"[name:video].reports.[type:remote-inbound-rtp].jitter",
+			"[name:video].reports.[type:remote-inbound-rtp].packetsLost",
+			"[name:video].reports.[type:remote-inbound-rtp].roundTripTime",
+		},
 	}
-	STORE_TTL = MINUTE_MS
+	STORE_TTL = TEN_MINUTES_MS
+}
+
+type InternedString struct {
+	s string
+	c int64
 }
 
 type StringInterner struct {
-	m   map[string]string
-	mux sync.Mutex
+	m           map[string]*InternedString
+	added       int64
+	deleted     int64
+	totalBytes  int64
+	storedBytes int64
+	mux         sync.Mutex
 }
 
 func (si *StringInterner) I(s string) string {
 	si.mux.Lock()
 	defer si.mux.Unlock()
 	if _, ok := si.m[s]; !ok {
-		si.m[s] = s
+		si.m[s] = &InternedString{s: s, c: int64(0)}
+		si.added++
+		si.storedBytes += int64(len(s))
 	}
-	return si.m[s]
+	si.m[s].c++
+	si.totalBytes += int64(len(s))
+	return si.m[s].s
 }
 
-func InternJsonValue(v interface{}) interface{} {
-	if m, ok := v.(map[string]interface{}); ok {
-		return InternJsonMap(m)
-	} else if a, ok := v.([]interface{}); ok {
-		return InternJsonArr(a)
-	} else if s, ok := v.(string); ok {
-		return I.I(s)
-	} else {
-		return v
+func (si *StringInterner) DI(s string) {
+	si.mux.Lock()
+	defer si.mux.Unlock()
+	si.m[s].c--
+	si.totalBytes -= int64(len(s))
+	if si.m[s].c == 0 {
+		delete(si.m, s)
+		si.deleted++
+		si.storedBytes -= int64(len(s))
 	}
 }
 
-func InternJsonMap(json map[string]interface{}) map[string]interface{} {
-	m := make(map[string]interface{})
-	for k, v := range json {
-		m[I.I(k)] = InternJsonValue(v)
-	}
-	return m
-}
-
-func InternJsonArr(json []interface{}) []interface{} {
-	a := make([]interface{}, 0)
-	for i := range json {
-		a = append(a, InternJsonValue(json[i]))
-	}
-	return a
+func (si *StringInterner) Info() {
+	si.mux.Lock()
+	defer si.mux.Unlock()
+	log.Infof("String interner. Size: %d Added: %d, Deleted: %d, Total bytes: %d, Saved bytes: %d Used bytes: %d",
+		len(si.m), si.added, si.deleted, si.totalBytes, si.totalBytes-si.storedBytes, si.storedBytes)
 }
 
 func GetUser(r map[string]interface{}) (User, error) {
@@ -132,25 +158,27 @@ func UserId(u User) (string, error) {
 	}
 }
 
-func GetDatas(r map[string]interface{}) ([]Data, error) {
+func GetDatas(r map[string]interface{}) ([][]Data, error) {
 	if data, ok := r["data"]; !ok {
 		return nil, errors.New("Expected 'data'.")
 	} else {
 		if dataTyped, ok := data.([]interface{}); !ok {
 			return nil, errors.New("Expected 'data' to be an array.")
 		} else {
-			d := []Data(nil)
+			d := [][]Data(nil)
 			for _, dataElem := range dataTyped {
 				if dataElemTyped, ok := dataElem.([]interface{}); !ok {
 					return nil, errors.New("Expected 'data' to be an array of array.")
 				} else {
+					subD := []Data(nil)
 					for _, dataElemOfElem := range dataElemTyped {
 						if dataElemOfElemTyped, ok := dataElemOfElem.(Data); !ok {
 							return nil, errors.New("Expected 'data' to be an array of array of objects.")
 						} else {
-							d = append(d, dataElemOfElemTyped)
+							subD = append(subD, dataElemOfElemTyped)
 						}
 					}
+					d = append(d, subD)
 				}
 			}
 			return d, nil
@@ -176,6 +204,14 @@ func GetInt64(json map[string]interface{}, field string) (int64, error) {
 			return v, nil
 		}
 	}
+}
+
+func GetTimestamp(v map[string]interface{}) (int64, error) {
+	f, err := GetFloat64(v, "timestamp")
+	if err != nil {
+		return 0, err
+	}
+	return int64(f), nil
 }
 
 func GetString(json map[string]interface{}, field string) (string, error) {
