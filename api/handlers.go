@@ -55,7 +55,6 @@ func UpdateHandler(c *gin.Context) {
 	}
 
 	resp, httpErr := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), r)
-	// I.Info()
 	concludeRequest(c, resp, httpErr)
 }
 

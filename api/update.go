@@ -320,6 +320,7 @@ func handleUpdate(db *sql.DB, r map[string]interface{}) (*UpdateResponse, *HttpE
 	if err != nil {
 		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)
 	}
+
 	datasOnTimestamp, err := GetDatas(r)
 	if err != nil {
 		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)

@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"math"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -67,9 +68,10 @@ func handleUsersData(db *sql.DB) (*UsersDataResponse, *HttpError) {
 	defer DATA_MUX.Unlock()
 
 	res := UsersDataResponse{UsersData: make(map[string]MetricsData)}
+	now := time.Now()
 
 	for userId, md := range METRICS_DATA {
-		if len(md.Timestamps) > 0 {
+		if len(md.Timestamps) > 0 && now.Sub(time.Unix(md.Timestamps[len(md.Timestamps)-1]/1000, 0)).Minutes() < 2.0 {
 			sendData := [][]interface{}(nil)
 			for i := range md.Data {
 				sendData = append(sendData, []interface{}{md.Data[i][len(md.Data[i])-1]})

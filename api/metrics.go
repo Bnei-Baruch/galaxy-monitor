@@ -32,9 +32,6 @@ func addMetric(prefix string, t string) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 
-	/*prefix = I.I(prefix)
-	t = I.I(t)*/
-
 	if _, ok := METRICS[prefix]; !ok {
 		METRICS[prefix] = &MetricType{Metric: prefix, Type: t, Updates: 0}
 	}
