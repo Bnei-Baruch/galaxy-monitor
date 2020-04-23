@@ -17,8 +17,12 @@ func handleUsers(db *sql.DB) (*UsersResponse, *HttpError) {
 	defer DATA_MUX.Unlock()
 
 	res := UsersResponse{Users: []User{}}
-	for _, user := range USERS {
-		res.Users = append(res.Users, user)
+	now := time.Now()
+
+	for userId, user := range USERS {
+		if md, ok := METRICS_DATA[userId]; ok && len(md.Timestamps) > 0 && now.Sub(time.Unix(md.Timestamps[len(md.Timestamps)-1]/1000, 0)).Minutes() < 2.0 {
+			res.Users = append(res.Users, user)
+		}
 	}
 	return &res, nil
 }
