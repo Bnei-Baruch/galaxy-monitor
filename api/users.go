@@ -2,10 +2,7 @@ package api
 
 import (
 	"database/sql"
-	"math"
 	"time"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 type UsersResponse struct {
@@ -85,29 +82,6 @@ func handleUsersData(db *sql.DB) (*UsersDataResponse, *HttpError) {
 				Timestamps: md.Timestamps[len(md.Timestamps)-1:],
 				Data:       sendData,
 				Stats:      md.Stats,
-			}
-		}
-	}
-
-	for k, v := range res.UsersData {
-		log.Infof("User: %s", k)
-		log.Infof("Index: %+v", v.Index)
-		log.Infof("Timestamps: %+v", v.Timestamps)
-		log.Infof("Data: %+v", v.Data)
-		for i := range v.Stats {
-			for j := range v.Stats[i] {
-				s := v.Stats[i][j]
-				log.Infof("Stats[%d][%d]: %+v", i, j, s)
-
-				if math.IsNaN(s.Mean) || math.IsNaN(s.DSquared) {
-					log.Infof("NaN!")
-				}
-				if math.IsInf(s.Mean, 1) || math.IsInf(s.DSquared, 1) {
-					log.Infof("+Inf!")
-				}
-				if math.IsInf(s.Mean, -1) || math.IsInf(s.DSquared, -1) {
-					log.Infof("-Inf!")
-				}
 			}
 		}
 	}

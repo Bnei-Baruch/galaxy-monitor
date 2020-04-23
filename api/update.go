@@ -239,9 +239,7 @@ func ClearOldMetricsData(userId string) error {
 		return nil
 	}
 
-	log.Infof("Before clean there are %d metrics time series for %s", len(md.Timestamps), userId)
 	lastTimestamp := md.Timestamps[len(md.Timestamps)-1]
-	log.Infof("firsTimestamp: %+v lastTimestamp: %+v", md.Timestamps[0], lastTimestamp)
 
 	timestamp_minute_index := sort.Search(len(md.Timestamps),
 		func(i int) bool { return md.Timestamps[i] >= lastTimestamp-MINUTE_MS })
@@ -250,19 +248,11 @@ func ClearOldMetricsData(userId string) error {
 	timestamp_all_index := sort.Search(len(md.Timestamps),
 		func(i int) bool { return md.Timestamps[i] >= lastTimestamp-STORE_TTL })
 
-	log.Infof("Cleanups 1: %d, 3: %d, 10: %d, total: %d",
-		timestamp_minute_index, timestamp_three_minutes_index, timestamp_all_index, len(md.Timestamps))
-
 	// Update stats.
 	for _, metricIndex := range md.Index {
 		stats_indices := []int{timestamp_minute_index, timestamp_three_minutes_index, timestamp_all_index}
 		for stat_index, timestamp_index := range stats_indices {
 			start_stat_index := sort.Search(len(md.Timestamps), func(i int) bool { return md.Timestamps[i] > md.Stats[metricIndex][stat_index].MaxRemovedTimestamp })
-			if metricIndex == 0 && len(md.Timestamps) > start_stat_index {
-				log.Infof("Clean fot stat: %d, start: %d, end: %d, start timestamps: %d", stat_index, start_stat_index, timestamp_index, md.Timestamps[start_stat_index])
-			} else if len(md.Timestamps) <= start_stat_index {
-				log.Infof("Len %d less then or equal to %d", len(md.Timestamps), start_stat_index)
-			}
 			for data_index := start_stat_index; data_index < timestamp_index; data_index++ {
 				value := md.Data[metricIndex][data_index]
 				if valueFloat, ok := value.(float64); ok {
@@ -280,7 +270,6 @@ func ClearOldMetricsData(userId string) error {
 			return errors.New(fmt.Sprintf("Expected timestamps length %d to be the same as data length %d", len(md.Timestamps), len(md.Data[metricIndex])))
 		}
 	}
-	log.Infof("After clean there are %d metric time series for %s", len(md.Timestamps), userId)
 	return nil
 }
 

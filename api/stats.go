@@ -23,7 +23,7 @@ func NewStats() *Stats {
 
 func (s *Stats) Add(value float64, timestamp int64) {
 	if math.IsNaN(value) || math.IsInf(value, 1) || math.IsInf(value, -1) {
-		log.Infof("Add %+v BAD VALUE", value)
+		log.Warnf("Add %+v BAD VALUE", value)
 		return
 	}
 	s.NumAdds++
@@ -53,7 +53,7 @@ func (s *Stats) Add(value float64, timestamp int64) {
 
 func (s *Stats) Remove(value float64, timestamp int64) {
 	if math.IsNaN(value) || math.IsInf(value, 1) || math.IsInf(value, -1) {
-		log.Infof("Remove %+v BAD VALUE", value)
+		log.Warnf("Remove %+v BAD VALUE", value)
 		return
 	}
 	if timestamp > s.MaxRemovedTimestamp {
