@@ -214,7 +214,7 @@ func JsonMetric(v interface{}, parts []string) interface{} {
 			//for key, value := range m {
 			//	log.Infof("[%s] [%s]: %s key type %+v", key, parts[0], value, reflect.TypeOf(key))
 			//}
-			log.Warnf("Failed finding field %s in map %+v.", parts[0], m)
+			//log.Warnf("Failed finding field %s in map %+v.", parts[0], m)
 			return nil
 		}
 		return JsonMetric(value, parts[1:])

@@ -83,6 +83,9 @@ func Init() {
 			"[name:video].reports.[type:remote-inbound-rtp].jitter",
 			"[name:video].reports.[type:remote-inbound-rtp].packetsLost",
 			"[name:video].reports.[type:remote-inbound-rtp].roundTripTime",
+			"[name:Misc].reports.[type:misc].slow-link-receiving",
+			"[name:Misc].reports.[type:misc].slow-link-receiving-lost",
+			"[name:Misc].reports.[type:misc].iceState",
 		},
 	}
 	STORE_TTL = TEN_MINUTES_MS
