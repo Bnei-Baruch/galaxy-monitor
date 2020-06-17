@@ -9,8 +9,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 
-	"github.com/bbfsdev/galaxy-monitor/core"
-	"github.com/bbfsdev/galaxy-monitor/utils"
+	"github.com/Bnei-Baruch/galaxy-monitor/core"
+	"github.com/Bnei-Baruch/galaxy-monitor/utils"
 )
 
 var (

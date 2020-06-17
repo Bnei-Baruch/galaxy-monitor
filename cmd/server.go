@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/bbfsdev/galaxy-monitor/api"
-	"github.com/bbfsdev/galaxy-monitor/common"
-	"github.com/bbfsdev/galaxy-monitor/utils"
-	"github.com/bbfsdev/galaxy-monitor/version"
+	"github.com/Bnei-Baruch/galaxy-monitor/api"
+	"github.com/Bnei-Baruch/galaxy-monitor/common"
+	"github.com/Bnei-Baruch/galaxy-monitor/utils"
+	"github.com/Bnei-Baruch/galaxy-monitor/version"
 )
 
 var serverCmd = &cobra.Command{
