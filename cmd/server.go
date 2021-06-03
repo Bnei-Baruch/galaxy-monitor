@@ -30,7 +30,6 @@ func init() {
 func serverFn(cmd *cobra.Command, args []string) {
 	log.Infof("Starting monitoring api server version %s", version.Version)
 	common.Init()
-	defer common.Shutdown()
 
 	api.Init()
 
@@ -44,7 +43,6 @@ func serverFn(cmd *cobra.Command, args []string) {
 	router := gin.New()
 	router.Use(
 		utils.LoggerMiddleware(),
-		utils.DataStoresMiddleware(common.DB),
 		utils.ErrorHandlingMiddleware(),
 		cors.New(corsConfig),
 		utils.RecoveryMiddleware())

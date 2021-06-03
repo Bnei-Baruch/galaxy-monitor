@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,14 +12,6 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/pkg/errors"
 )
-
-// Set MDB in context.
-func DataStoresMiddleware(mbdDB *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("MDB_DB", mbdDB)
-		c.Next()
-	}
-}
 
 func LoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -2,7 +2,6 @@ package api
 
 import (
 	"compress/gzip"
-	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -54,12 +53,12 @@ func UpdateHandler(c *gin.Context) {
 		return
 	}
 
-	resp, httpErr := handleUpdate(c.MustGet("MDB_DB").(*sql.DB), r)
+	resp, httpErr := handleUpdate(r)
 	concludeRequest(c, resp, httpErr)
 }
 
 func UsersHandler(c *gin.Context) {
-	resp, httpErr := handleUsers(c.MustGet("MDB_DB").(*sql.DB))
+	resp, httpErr := handleUsers()
 	concludeRequest(c, resp, httpErr)
 }
 
@@ -68,17 +67,17 @@ func UserDataHandler(c *gin.Context) {
 	if c.Bind(&r) != nil {
 		return
 	}
-	resp, httpErr := handleUserData(c.MustGet("MDB_DB").(*sql.DB), r)
+	resp, httpErr := handleUserData(r)
 	concludeRequest(c, resp, httpErr)
 }
 
 func UsersDataHandler(c *gin.Context) {
-	resp, httpErr := handleUsersData(c.MustGet("MDB_DB").(*sql.DB))
+	resp, httpErr := handleUsersData()
 	concludeRequest(c, resp, httpErr)
 }
 
 func MetricsHandler(c *gin.Context) {
-	resp, httpErr := handleMetrics(c.MustGet("MDB_DB").(*sql.DB))
+	resp, httpErr := handleMetrics()
 	concludeRequest(c, resp, httpErr)
 }
 
@@ -87,12 +86,12 @@ func SpecHandlerPost(c *gin.Context) {
 	if c.Bind(&r) != nil {
 		return
 	}
-	resp, httpErr := handleSpecPost(c.MustGet("MDB_DB").(*sql.DB), r)
+	resp, httpErr := handleSpecPost(r)
 	concludeRequest(c, resp, httpErr)
 }
 
 func SpecHandlerGet(c *gin.Context) {
-	resp, httpErr := handleSpecGet(c.MustGet("MDB_DB").(*sql.DB))
+	resp, httpErr := handleSpecGet()
 	concludeRequest(c, resp, httpErr)
 }
 
@@ -101,6 +100,10 @@ func UserMetricsHandler(c *gin.Context) {
 	if c.Bind(&r) != nil {
 		return
 	}
-	resp, httpErr := handleUserMetrics(c.MustGet("MDB_DB").(*sql.DB), r)
+	resp, httpErr := handleUserMetrics(r)
 	concludeRequest(c, resp, httpErr)
+}
+
+func HealthCheckHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

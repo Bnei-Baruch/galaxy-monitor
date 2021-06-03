@@ -1,13 +1,12 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/pkg/errors"
 )
 
-func handleSpecPost(db *sql.DB, r Spec) (*EmptyResponse, *HttpError) {
+func handleSpecPost(r Spec) (*EmptyResponse, *HttpError) {
 	if r.SampleInterval >= SECOND_MS {
 		SPEC.SampleInterval = r.SampleInterval
 	} else {
@@ -24,6 +23,6 @@ func handleSpecPost(db *sql.DB, r Spec) (*EmptyResponse, *HttpError) {
 	return &EmptyResponse{}, nil
 }
 
-func handleSpecGet(db *sql.DB) (*Spec, *HttpError) {
+func handleSpecGet() (*Spec, *HttpError) {
 	return &SPEC, nil
 }

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -300,7 +299,7 @@ type UpdateResponse struct {
 	Spec Spec `json:"spec"`
 }
 
-func handleUpdate(db *sql.DB, r map[string]interface{}) (*UpdateResponse, *HttpError) {
+func handleUpdate(r map[string]interface{}) (*UpdateResponse, *HttpError) {
 	user, err := GetUser(r)
 	if err != nil {
 		return &UpdateResponse{Spec: SPEC}, NewBadRequestError(err)

@@ -17,6 +17,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.POST("/spec", SpecHandlerPost)
 	router.GET("/spec", SpecHandlerGet)
 	router.GET("/users_data", UsersDataHandler)
+	router.GET("/health_check", HealthCheckHandler)
 
 	if pass := viper.GetString("server.http-pprof-pass"); pass != "" {
 		pRouter := router.Group("debug/pprof", gin.BasicAuth(gin.Accounts{"debug": pass}))

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -13,7 +12,7 @@ type MetricsResponse struct {
 	Metrics []MetricType `json:"metrics"`
 }
 
-func handleMetrics(db *sql.DB) (*MetricsResponse, *HttpError) {
+func handleMetrics() (*MetricsResponse, *HttpError) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 

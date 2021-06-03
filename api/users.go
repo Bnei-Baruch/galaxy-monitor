@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -9,7 +8,7 @@ type UsersResponse struct {
 	Users []User `json:"users"`
 }
 
-func handleUsers(db *sql.DB) (*UsersResponse, *HttpError) {
+func handleUsers() (*UsersResponse, *HttpError) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 
@@ -32,7 +31,7 @@ type UserDataResponse struct {
 	Data [][]Data `json:"data"`
 }
 
-func handleUserData(db *sql.DB, r UserDataRequest) (*UserDataResponse, *HttpError) {
+func handleUserData(r UserDataRequest) (*UserDataResponse, *HttpError) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 
@@ -49,7 +48,7 @@ type UserMetricsResponse struct {
 	Metrics MetricsData `json:"metrics"`
 }
 
-func handleUserMetrics(db *sql.DB, r UserDataRequest) (*UserMetricsResponse, *HttpError) {
+func handleUserMetrics(r UserDataRequest) (*UserMetricsResponse, *HttpError) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 
@@ -64,7 +63,7 @@ type UsersDataResponse struct {
 	UsersData map[string]MetricsData `json:"users_data"`
 }
 
-func handleUsersData(db *sql.DB) (*UsersDataResponse, *HttpError) {
+func handleUsersData() (*UsersDataResponse, *HttpError) {
 	DATA_MUX.Lock()
 	defer DATA_MUX.Unlock()
 
