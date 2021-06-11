@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 type EmptyResponse struct{}

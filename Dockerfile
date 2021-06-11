@@ -1,10 +1,12 @@
 ARG work_dir=/go/src/github.com/Bnei-Baruch/galaxy-monitor
+ARG build_number=dev
 
 FROM golang:1.14-alpine3.11 as build
 
 LABEL maintainer="bbfsdev@gmail.com"
 
 ARG work_dir
+ARG build_number
 
 ENV GOOS=linux \
 	CGO_ENABLED=0
@@ -16,8 +18,9 @@ RUN apk update && \
 WORKDIR ${work_dir}
 COPY . .
 
-RUN go test $(go list ./...) \
-    && go build
+
+RUN go test -v $(go list ./... ) \
+    && go build -ldflags "-w -X github.com/Bnei-Baruch/galaxy-monitor/version.PreRelease=${build_number}"
 
 
 FROM alpine:3.11

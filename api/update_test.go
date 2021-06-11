@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,10 +22,6 @@ func (suite *APISuite) TearDownSuite() {
 func TestAPI(t *testing.T) {
 	suite.Run(t, new(APISuite))
 }
-
-type ESLogAdapter struct{ *testing.T }
-
-func (s ESLogAdapter) Printf(format string, v ...interface{}) { s.Logf(format, v...) }
 
 func (suite *APISuite) J(jsonString string) map[string]interface{} {
 	r := suite.Require()

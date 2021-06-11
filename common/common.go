@@ -3,14 +3,7 @@ package common
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-	_ "github.com/lib/pq"
-
-	"github.com/Bnei-Baruch/galaxy-monitor/core"
-)
-
-var (
-	STORE *core.Store
+	log "github.com/sirupsen/logrus"
 )
 
 func Init() time.Time {
@@ -18,8 +11,6 @@ func Init() time.Time {
 
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
 	//log.SetLevel(log.WarnLevel)
-
-	STORE = &core.Store{}
 
 	return clock
 }

@@ -8,7 +8,7 @@ import (
 
 // Custom fields
 
-// A time.Time like structure with date part only JSON marshalling
+// Date is A time.Time like structure with date part only JSON marshalling
 type Date struct {
 	time.Time
 }

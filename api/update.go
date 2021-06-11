@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 //func AddData(user User, userId string, data Data) {
@@ -151,11 +151,11 @@ func AddMetricData(userId string, datasOnName []Data) error {
 }
 
 func PrintJson(v interface{}) {
-	json, err := json.MarshalIndent(v, "", "  ")
+	str, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	log.Infof("Json: %s", json)
+	log.Infof("Json: %s", str)
 }
 
 func JsonMetric(v interface{}, parts []string) interface{} {
@@ -240,30 +240,30 @@ func ClearOldMetricsData(userId string) error {
 
 	lastTimestamp := md.Timestamps[len(md.Timestamps)-1]
 
-	timestamp_minute_index := sort.Search(len(md.Timestamps),
+	timestampMinuteIndex := sort.Search(len(md.Timestamps),
 		func(i int) bool { return md.Timestamps[i] >= lastTimestamp-MINUTE_MS })
-	timestamp_three_minutes_index := sort.Search(len(md.Timestamps),
+	timestampThreeMinutesIndex := sort.Search(len(md.Timestamps),
 		func(i int) bool { return md.Timestamps[i] >= lastTimestamp-THREE_MINUTES_MS })
-	timestamp_all_index := sort.Search(len(md.Timestamps),
+	timestampAllIndex := sort.Search(len(md.Timestamps),
 		func(i int) bool { return md.Timestamps[i] >= lastTimestamp-STORE_TTL })
 
 	// Update stats.
 	for _, metricIndex := range md.Index {
-		stats_indices := []int{timestamp_minute_index, timestamp_three_minutes_index, timestamp_all_index}
-		for stat_index, timestamp_index := range stats_indices {
-			start_stat_index := sort.Search(len(md.Timestamps), func(i int) bool { return md.Timestamps[i] > md.Stats[metricIndex][stat_index].MaxRemovedTimestamp })
-			for data_index := start_stat_index; data_index < timestamp_index; data_index++ {
-				value := md.Data[metricIndex][data_index]
+		statsIndices := []int{timestampMinuteIndex, timestampThreeMinutesIndex, timestampAllIndex}
+		for statIndex, timestampIndex := range statsIndices {
+			startStatIndex := sort.Search(len(md.Timestamps), func(i int) bool { return md.Timestamps[i] > md.Stats[metricIndex][statIndex].MaxRemovedTimestamp })
+			for dataIndex := startStatIndex; dataIndex < timestampIndex; dataIndex++ {
+				value := md.Data[metricIndex][dataIndex]
 				if valueFloat, ok := value.(float64); ok {
-					md.Stats[metricIndex][stat_index].Remove(valueFloat, md.Timestamps[data_index])
+					md.Stats[metricIndex][statIndex].Remove(valueFloat, md.Timestamps[dataIndex])
 				}
 			}
 		}
 	}
 
-	md.Timestamps = md.Timestamps[timestamp_all_index:]
+	md.Timestamps = md.Timestamps[timestampAllIndex:]
 	for _, metricIndex := range md.Index {
-		md.Data[metricIndex] = md.Data[metricIndex][timestamp_all_index:]
+		md.Data[metricIndex] = md.Data[metricIndex][timestampAllIndex:]
 
 		if len(md.Timestamps) != len(md.Data[metricIndex]) {
 			return errors.New(fmt.Sprintf("Expected timestamps length %d to be the same as data length %d", len(md.Timestamps), len(md.Data[metricIndex])))

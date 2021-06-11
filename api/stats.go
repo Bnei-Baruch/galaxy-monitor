@@ -3,7 +3,7 @@ package api
 import (
 	"math"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Stats struct {
@@ -79,7 +79,7 @@ func (s *Stats) Remove(value float64, timestamp int64) {
 	meanIncrement := (s.Mean - value) / s.Length
 	newMean := s.Mean + meanIncrement
 
-	dSquaredIncrement := ((newMean - value) * (value - s.Mean))
+	dSquaredIncrement := (newMean - value) * (value - s.Mean)
 	newDSquared := (s.DSquared*(s.Length+1) + dSquaredIncrement) / s.Length
 	if newDSquared < 0 {
 		// Correcting float inaccuracy.

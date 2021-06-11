@@ -7,10 +7,10 @@ import (
 	"runtime/debug"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func LoggerMiddleware() gin.HandlerFunc {
@@ -33,7 +33,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Recover with error
+// RecoveryMiddleware recovers from panics with error
 func RecoveryMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
@@ -83,7 +83,7 @@ func BindErrorMessage(err error) string {
 	}
 }
 
-// Handle all errors
+// ErrorHandlingMiddleware is a centralized error handling
 func ErrorHandlingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
