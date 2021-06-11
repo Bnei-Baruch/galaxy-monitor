@@ -5,7 +5,8 @@ import (
 	"net/http/pprof"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
+
+	"github.com/Bnei-Baruch/galaxy-monitor/common"
 )
 
 func SetupRoutes(router *gin.Engine) {
@@ -19,8 +20,8 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/users_data", UsersDataHandler)
 	router.GET("/health_check", HealthCheckHandler)
 
-	if pass := viper.GetString("server.http-pprof-pass"); pass != "" {
-		pRouter := router.Group("debug/pprof", gin.BasicAuth(gin.Accounts{"debug": pass}))
+	if common.Config.HttpPProfPassword != "" {
+		pRouter := router.Group("debug/pprof", gin.BasicAuth(gin.Accounts{"debug": common.Config.HttpPProfPassword}))
 		pRouter.GET("/", pprofHandler(pprof.Index))
 		pRouter.GET("/cmdline", pprofHandler(pprof.Cmdline))
 		pRouter.GET("/profile", pprofHandler(pprof.Profile))
@@ -36,8 +37,7 @@ func SetupRoutes(router *gin.Engine) {
 }
 
 func pprofHandler(h http.HandlerFunc) gin.HandlerFunc {
-	handler := http.HandlerFunc(h)
 	return func(c *gin.Context) {
-		handler.ServeHTTP(c.Writer, c.Request)
+		h.ServeHTTP(c.Writer, c.Request)
 	}
 }

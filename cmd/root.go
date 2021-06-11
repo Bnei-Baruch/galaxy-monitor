@@ -4,18 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 
-	"github.com/Bnei-Baruch/galaxy-monitor/utils"
+	"github.com/Bnei-Baruch/galaxy-monitor/common"
 )
-
-var cfgFile string
 
 var RootCmd = &cobra.Command{
 	Use:   "galaxy-monitor",
-	Short: "Backend for feed",
+	Short: "Galaxy user monitor",
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
 }
 
 func Execute() {
@@ -25,13 +26,7 @@ func Execute() {
 	}
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
-	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.toml)")
-}
-
 func initConfig() {
-	if err := utils.InitConfig(cfgFile, ""); err != nil {
-		panic(errors.Wrapf(err, "Could not read config, using: %s", viper.ConfigFileUsed()))
-	}
+	gotenv.Load()
+	common.Init()
 }
