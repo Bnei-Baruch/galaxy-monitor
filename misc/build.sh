@@ -5,5 +5,5 @@ set -x
 
 docker image build -t galaxy-monitor:latest .
 docker create --name dummy galaxy-monitor:latest
-docker cp dummy:/app/galaxy-monitor ./galaxy-monitor
+docker cp dummy:/app/galaxy-monitor ./galaxy-monitor-linux
 docker rm -f dummy
