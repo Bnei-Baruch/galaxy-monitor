@@ -47,7 +47,7 @@ func serverFn(cmd *cobra.Command, args []string) {
 
 	api.SetupRoutes(router)
 
-	log.Infoln("Running application")
+	log.Infof("Running application [%s]", common.Config.ListenAddress)
 	if cmd != nil {
 		router.Run(common.Config.ListenAddress)
 	}

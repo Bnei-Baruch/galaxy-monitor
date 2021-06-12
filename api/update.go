@@ -153,7 +153,7 @@ func AddMetricData(userId string, datasOnName []Data) error {
 func PrintJson(v interface{}) {
 	str, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		panic(err)
+		log.Errorf("json.Marshal error: %s", err.Error())
 	}
 	log.Infof("Json: %s", str)
 }
