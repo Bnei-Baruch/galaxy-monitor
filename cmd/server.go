@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/Bnei-Baruch/galaxy-monitor/api"
 	"github.com/Bnei-Baruch/galaxy-monitor/common"
@@ -23,7 +22,6 @@ var bindAddress string
 
 func init() {
 	serverCmd.PersistentFlags().StringVar(&bindAddress, "bind_address", "", "Bind address for server.")
-	viper.BindPFlag("server.bind-address", serverCmd.PersistentFlags().Lookup("bind_address"))
 	RootCmd.AddCommand(serverCmd)
 }
 
@@ -39,7 +37,7 @@ func serverFn(cmd *cobra.Command, args []string) {
 	corsConfig.AllowAllOrigins = true
 
 	// Setup gin
-	gin.SetMode(viper.GetString("server.mode"))
+	gin.SetMode(common.Config.GinMode)
 	router := gin.New()
 	router.Use(
 		utils.LoggerMiddleware(),
@@ -51,6 +49,6 @@ func serverFn(cmd *cobra.Command, args []string) {
 
 	log.Infoln("Running application")
 	if cmd != nil {
-		router.Run(viper.GetString("server.bind-address"))
+		router.Run(common.Config.ListenAddress)
 	}
 }

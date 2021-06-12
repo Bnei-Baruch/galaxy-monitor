@@ -1,7 +1,7 @@
 package api
 
 import (
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func Mean(numbers []float64) float64 {
@@ -26,29 +26,29 @@ func (suite *APISuite) TestStats() {
 
 	numbers := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	r.Equal(float64(5.5), Mean(numbers))
-	r.Equal(float64(8.25), DSquared(numbers))
+	r.Equal(5.5, Mean(numbers))
+	r.Equal(8.25, DSquared(numbers))
 
 	s := NewStats()
 	i := 1
 	for i <= len(numbers) {
 		s.Add(numbers[i-1], 0)
-		sub_numbers := numbers[0:i]
+		subNumbers := numbers[0:i]
 		log.Infof("Numbers %+v. Mean: %f %f, DSquared: %f %f.",
-			sub_numbers, Mean(sub_numbers), s.Mean, DSquared(sub_numbers), s.DSquared)
-		r.Equal(Mean(sub_numbers), s.Mean)
-		r.Equal(DSquared(sub_numbers), s.DSquared)
+			subNumbers, Mean(subNumbers), s.Mean, DSquared(subNumbers), s.DSquared)
+		r.Equal(Mean(subNumbers), s.Mean)
+		r.Equal(DSquared(subNumbers), s.DSquared)
 		i++
 	}
 
 	i = 0
 	for i < len(numbers)-1 {
 		s.Remove(numbers[i], 0)
-		sub_numbers := numbers[i+1:]
+		subNumbers := numbers[i+1:]
 		log.Infof("Numbers %+v. Mean: %f %f, DSquared: %f %f.",
-			sub_numbers, Mean(sub_numbers), s.Mean, DSquared(sub_numbers), s.DSquared)
-		r.Equal(Mean(sub_numbers), s.Mean)
-		r.Equal(DSquared(sub_numbers), s.DSquared)
+			subNumbers, Mean(subNumbers), s.Mean, DSquared(subNumbers), s.DSquared)
+		r.Equal(Mean(subNumbers), s.Mean)
+		r.Equal(DSquared(subNumbers), s.DSquared)
 		i++
 	}
 
